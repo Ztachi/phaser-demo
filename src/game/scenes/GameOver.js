@@ -8,13 +8,14 @@
  */
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
-import { gameRegistry } from '@/registry';
 import { AUDIO_EVENTS } from '../../const/audioEvents';
+import { 
+    setGameOverState, 
+    resetGameData, 
+    isNewRecord 
+} from '@/register';
 
 export class GameOver extends Scene {
-    // 游戏状态注册表
-    gameRegistry;
-
     constructor() {
         super('GameOver');
     }
@@ -23,11 +24,8 @@ export class GameOver extends Scene {
      * @description: 创建场景
      */
     create() {
-        // 获取游戏状态注册表
-        this.gameRegistry = gameRegistry;
-        
         // 设置游戏状态为结束并更新最高分
-        this.gameRegistry.gameOver();
+        setGameOverState(this.registry);
 
         // 设置背景颜色
         this.cameras.main.setBackgroundColor(0x2c3e50);
@@ -48,7 +46,7 @@ export class GameOver extends Scene {
         }).setOrigin(0.5);
 
         // 最终得分
-        this.add.text(400, 280, `最终得分: ${this.gameRegistry.get('score')}`, {
+        this.add.text(400, 280, `最终得分: ${this.registry.get('score')}`, {
             fontFamily: 'Arial', 
             fontSize: 32, 
             color: '#ffffff',
@@ -58,7 +56,7 @@ export class GameOver extends Scene {
         }).setOrigin(0.5);
 
         // 等级显示
-        this.add.text(400, 320, `等级: ${this.gameRegistry.get('level')}`, {
+        this.add.text(400, 320, `等级: ${this.registry.get('level')}`, {
             fontFamily: 'Arial', 
             fontSize: 24, 
             color: '#f39c12',
@@ -68,7 +66,7 @@ export class GameOver extends Scene {
         }).setOrigin(0.5);
 
         // 收集的星星数量
-        this.add.text(400, 350, `收集星星: ${this.gameRegistry.get('starsCollected')}`, {
+        this.add.text(400, 350, `收集星星: ${this.registry.get('starsCollected')}`, {
             fontFamily: 'Arial', 
             fontSize: 24, 
             color: '#f1c40f',
@@ -78,7 +76,7 @@ export class GameOver extends Scene {
         }).setOrigin(0.5);
 
         // 最高分显示
-        this.add.text(400, 400, `最高分: ${this.gameRegistry.get('highScore')}`, {
+        this.add.text(400, 400, `最高分: ${this.registry.get('highScore')}`, {
             fontFamily: 'Arial', 
             fontSize: 28, 
             color: '#e67e22',
@@ -88,7 +86,7 @@ export class GameOver extends Scene {
         }).setOrigin(0.5);
 
         // 新记录提示
-        if (this.gameRegistry.getIsNewRecord()) {
+        if (isNewRecord(this.registry)) {
             this.add.text(400, 440, '🎉 新记录！', {
                 fontFamily: 'Arial', 
                 fontSize: 24, 
@@ -124,7 +122,7 @@ export class GameOver extends Scene {
      */
     handleKeyPress() {
         // 重新开始游戏
-        this.gameRegistry.startNewGame();
+        resetGameData(this.registry);
         this.changeScene();
     }
 
@@ -142,8 +140,5 @@ export class GameOver extends Scene {
         // 移除事件监听
         this.input.keyboard.off('keydown', this.handleKeyPress, this);
         this.input.off('pointerdown', this.handleKeyPress, this);
-        
-        // 清空注册表引用
-        this.gameRegistry = null;
     }
 }

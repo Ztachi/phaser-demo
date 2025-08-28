@@ -2,12 +2,18 @@
  * @Author: ztachi(legendryztachi@gmail.com)
  * @Date: 2025-08-26 10:37:25
  * @LastEditors: ztachi(legendryztachi@gmail.com)
- * @LastEditTime: 2025-08-28 10:20:00
+ * @LastEditTime: 2025-08-28 10:50:00
  * @FilePath: /my-phaser-game/src/game/scenes/game/infoManager.js
- * @Description: 信息管理器 - 负责游戏内UI显示和注册表状态同步
+ * @Description: 信息管理器 - 负责游戏内UI显示，使用Phaser官方Data Manager
  */
 
-import { gameRegistry } from "@/registry";
+import { 
+    initializeGameData, 
+    addScore, 
+    getFormattedScore, 
+    resetGameData,
+    GAME_DATA_DEFAULTS 
+} from "@/register";
 
 export class InfoManager {
     // 场景引用
@@ -16,8 +22,6 @@ export class InfoManager {
     scoreText;
     // 等级文本对象
     levelText;
-    // 游戏状态注册表
-    gameRegistry;
 
     /**
      * @description: 构造函数
@@ -25,8 +29,8 @@ export class InfoManager {
      */
     constructor(scene) {
         this.scene = scene;
-        // 获取游戏状态注册表实例
-        this.gameRegistry = gameRegistry;
+        // 初始化游戏数据到registry（全局数据管理器）
+        initializeGameData(this.scene.registry);
     }
 
     /**
@@ -37,7 +41,7 @@ export class InfoManager {
         this.scoreText = this.scene.add.text(
             16,
             16,
-            this.gameRegistry.getFormattedScore(),
+            getFormattedScore(this.scene.registry),
             {
                 fontSize: "32px",
                 fill: "#fff",
@@ -49,7 +53,7 @@ export class InfoManager {
         this.levelText = this.scene.add.text(
             16,
             56,
-            `等级: ${this.gameRegistry.get('level')}`,
+            `等级: ${this.scene.registry.get('level')}`,
             {
                 fontSize: "24px",
                 fill: "#ffff00",
@@ -58,7 +62,7 @@ export class InfoManager {
         );
 
         // 设置游戏状态为正在游戏
-        this.gameRegistry.setGameState("playing");
+        this.scene.registry.set('gameState', GAME_DATA_DEFAULTS.GAME_STATE_PLAYING);
 
         // 初始更新显示
         this.updateDisplay();
@@ -68,9 +72,9 @@ export class InfoManager {
      * @description: 增加分数
      * @param {Number} points 增加的分数
      */
-    addScore(points = 10) {
-        // 通过注册表更新分数
-        this.gameRegistry.addScore(points);
+    addScore(points = GAME_DATA_DEFAULTS.POINTS_PER_STAR) {
+        // 使用统一的增加分数函数
+        addScore(this.scene.registry, points);
         // 直接更新UI显示
         this.updateDisplay();
     }
@@ -80,17 +84,18 @@ export class InfoManager {
      */
     updateDisplay() {
         // 更新分数显示
-        this.scoreText?.setText(this.gameRegistry.getFormattedScore());
+        this.scoreText?.setText(getFormattedScore(this.scene.registry));
 
         // 更新等级显示
-        this.levelText?.setText(`等级: ${this.gameRegistry.get('level')}`);
+        this.levelText?.setText(`等级: ${this.scene.registry.get('level')}`);
     }
 
     /**
      * @description: 重置分数
      */
     resetScore() {
-        this.gameRegistry.resetScore();
+        // 使用统一的重置函数
+        resetGameData(this.scene.registry);
         // 直接更新UI显示
         this.updateDisplay();
     }
@@ -100,7 +105,7 @@ export class InfoManager {
      * @return {Number} 当前分数
      */
     getCurrentScore() {
-        return this.gameRegistry.get('score');
+        return this.scene.registry.get('score');
     }
 
     /**
@@ -108,7 +113,7 @@ export class InfoManager {
      * @return {Number} 当前等级
      */
     getCurrentLevel() {
-        return this.gameRegistry.get('level');
+        return this.scene.registry.get('level');
     }
 
     /**
@@ -120,6 +125,6 @@ export class InfoManager {
         this.levelText?.destroy();
         this.scoreText = null;
         this.levelText = null;
-        this.gameRegistry = null;
+        this.scene = null;
     }
 }
