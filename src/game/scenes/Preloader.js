@@ -2,7 +2,7 @@
  * @Author: ztachi(legendryztachi@gmail.com)
  * @Date: 2025-08-22 11:48:16
  * @LastEditors: ztachi(legendryztachi@gmail.com)
- * @LastEditTime: 2025-08-25 12:05:12
+ * @LastEditTime: 2025-08-27 11:09:16
  * @FilePath: /my-phaser-game/src/game/scenes/Preloader.js
  * @Description: 
  */
@@ -39,15 +39,20 @@ export class Preloader extends Scene
     {
         //  Load the assets for the game - Replace with your own assets
         this.load.setPath('assets');
-
+        // 加载背景图片
         this.load.image('sky', 'sky.png');
+        // 加载地面图片
         this.load.image('ground', 'platform.png');
+        // 加载星星图片
         this.load.image('star', 'star.png');
+        // 加载炸弹图片
         this.load.image('bomb', 'bomb.png');
+        // 加载玩家图片
         this.load.spritesheet('dude', 
             'dude.png',
             { frameWidth: 32, frameHeight: 48 }
         );
+        // 加载logo图片
         this.load.image('logo', 'logo.png');
     }
 

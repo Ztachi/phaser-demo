@@ -2,7 +2,7 @@
  * @Author: ztachi(legendryztachi@gmail.com)
  * @Date: 2025-08-22 11:48:16
  * @LastEditors: ztachi(legendryztachi@gmail.com)
- * @LastEditTime: 2025-08-26 11:40:50
+ * @LastEditTime: 2025-08-28 09:58:06
  * @FilePath: /my-phaser-game/src/game/scenes/game/index.js
  * @Description: 游戏主场景 - 使用模块化架构管理游戏组件
  */
@@ -14,6 +14,8 @@ import { StarManager } from "./starManager";
 import { InfoManager } from "./infoManager";
 import { BombsManager } from "./bombsManager";
 import { InputController } from "./InputController";
+import { AUDIO_EVENTS } from "../../../const/audioEvents";
+
 export class Game extends Scene {
     // 管理器实例
     platformsManager;
@@ -44,6 +46,9 @@ export class Game extends Scene {
 
         // 设置物理碰撞
         this._setupPhysics();
+
+        // 发送音频事件 - 进入游戏场景时播放背景音乐
+        EventBus.emit(AUDIO_EVENTS.BGM_PLAY);
 
         // 场景准备完成事件
         EventBus.emit("current-scene-ready", this);
@@ -130,9 +135,13 @@ export class Game extends Scene {
         player.setTint(0xff0000);
         // 播放玩家动画
         player.anims.play("turn");
+        // 播放触碰炸弹的音频
+        EventBus.emit(AUDIO_EVENTS.TOUCH_BOMB);
 
         // 延迟一下再切换场景，让玩家看到碰撞效果
         this.time.delayedCall(1000, () => {
+            // 发送音频事件 - 退出游戏场景时停止背景音乐
+            EventBus.emit(AUDIO_EVENTS.BGM_STOP);
             // 切换到游戏结束场景
             this.scene.start("GameOver");
         });
@@ -150,7 +159,8 @@ export class Game extends Scene {
         star.disableBody(true, true);
         // 添加分数
         this.infoManager.addScore(10);
-
+        // 播放获取星星的音频
+        EventBus.emit(AUDIO_EVENTS.GET_STAR);
         // 如果星星组没有星星，则创建炸弹
         if (stars.countActive(true) === 0) {
             // 启用星星
@@ -186,6 +196,8 @@ export class Game extends Scene {
      * @description: 切换到游戏结束场景
      */
     changeScene() {
+        // 发送音频事件 - 退出游戏场景时停止背景音乐
+        EventBus.emit(AUDIO_EVENTS.BGM_STOP);
         this.scene.start("GameOver");
     }
 
@@ -200,7 +212,6 @@ export class Game extends Scene {
         this.infoManager?.destroy();
         this.bombsManager?.destroy();
         this.inputController?.destroy();
-
         // 清空引用
         this.platformsManager = null;
         this.playerManager = null;

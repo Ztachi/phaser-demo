@@ -1,10 +1,9 @@
-import { Boot } from "./scenes/Boot";
 import { Game } from "./scenes/game";
 import { GameOver } from "./scenes/GameOver";
 import { MainMenu } from "./scenes/MainMenu";
 import Phaser from "phaser";
 import { Preloader } from "./scenes/Preloader";
-
+import { AudioScene } from "./scenes/AudioScene";
 // Find out more information about the Game Config at:
 // https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
 const config = {
@@ -20,7 +19,7 @@ const config = {
             debug: false,
         },
     },
-    scene: [Boot, Preloader, MainMenu, Game, GameOver],
+    scene: [AudioScene, Preloader, MainMenu, Game, GameOver],
 };
 
 const StartGame = (parent) => {

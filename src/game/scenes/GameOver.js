@@ -9,6 +9,7 @@
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 import { useGameStore } from '@/stores/gameStore';
+import { AUDIO_EVENTS } from '../../const/audioEvents';
 
 export class GameOver extends Scene {
     // 游戏状态store
@@ -111,6 +112,9 @@ export class GameOver extends Scene {
         
         // 添加鼠标点击监听
         this.input.on('pointerdown', this.handleKeyPress, this);
+
+        // 发送音频事件 - 进入游戏结束场景时停止背景音乐
+        EventBus.emit(AUDIO_EVENTS.BGM_STOP);
 
         EventBus.emit('current-scene-ready', this);
     }

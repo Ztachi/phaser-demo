@@ -8,6 +8,7 @@
  */
 import { EventBus } from "../EventBus";
 import { Scene } from "phaser";
+import { AUDIO_EVENTS } from "../../const/audioEvents";
 
 export class MainMenu extends Scene {
     logoTween;
@@ -31,6 +32,9 @@ export class MainMenu extends Scene {
             .setOrigin(0.5);
 
         this.input.keyboard.on("keydown-ENTER", this.changeScene, this);
+
+        // 发送音频事件 - 进入主菜单时停止背景音乐
+        EventBus.emit(AUDIO_EVENTS.BGM_STOP);
 
         EventBus.emit("current-scene-ready", this);
     }
