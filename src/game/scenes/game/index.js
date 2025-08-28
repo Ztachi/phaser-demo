@@ -2,19 +2,20 @@
  * @Author: ztachi(legendryztachi@gmail.com)
  * @Date: 2025-08-22 11:48:16
  * @LastEditors: ztachi(legendryztachi@gmail.com)
- * @LastEditTime: 2025-08-28 09:58:06
+ * @LastEditTime: 2025-08-28 11:33:08
  * @FilePath: /my-phaser-game/src/game/scenes/game/index.js
  * @Description: 游戏主场景 - 使用模块化架构管理游戏组件
  */
-import { EventBus } from "../../EventBus";
 import { Scene } from "phaser";
+import { EventBus } from "@/game/EventBus";
+import { AUDIO_EVENTS } from "@/const/audioEvents";
 import { PlatformsManager } from "./PlatformsManager";
 import { PlayerManager } from "./PlayerManager";
 import { StarManager } from "./starManager";
 import { InfoManager } from "./infoManager";
 import { BombsManager } from "./bombsManager";
 import { InputController } from "./InputController";
-import { AUDIO_EVENTS } from "../../../const/audioEvents";
+import { CameraManager } from "./cameraManager";
 
 export class Game extends Scene {
     // 管理器实例
@@ -82,6 +83,10 @@ export class Game extends Scene {
         // 创建输入控制器
         this.inputController = new InputController(this, this.playerManager);
         this.inputController.create();
+
+        // 创建相机管理器
+        // this.cameraManager = new CameraManager(this);
+        // this.cameraManager.create(this.playerManager);
     }
 
     /**
