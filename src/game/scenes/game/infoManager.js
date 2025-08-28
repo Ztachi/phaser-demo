@@ -2,12 +2,12 @@
  * @Author: ztachi(legendryztachi@gmail.com)
  * @Date: 2025-08-26 10:37:25
  * @LastEditors: ztachi(legendryztachi@gmail.com)
- * @LastEditTime: 2025-08-26 11:51:49
+ * @LastEditTime: 2025-08-28 10:20:00
  * @FilePath: /my-phaser-game/src/game/scenes/game/infoManager.js
- * @Description: 信息管理器 - 负责游戏内UI显示和Pinia状态同步
+ * @Description: 信息管理器 - 负责游戏内UI显示和注册表状态同步
  */
 
-import { useGameStore } from "@/stores/gameStore";
+import { gameRegistry } from "@/registry";
 
 export class InfoManager {
     // 场景引用
@@ -16,8 +16,8 @@ export class InfoManager {
     scoreText;
     // 等级文本对象
     levelText;
-    // 游戏状态store
-    gameStore;
+    // 游戏状态注册表
+    gameRegistry;
 
     /**
      * @description: 构造函数
@@ -25,8 +25,8 @@ export class InfoManager {
      */
     constructor(scene) {
         this.scene = scene;
-        // 获取游戏状态store实例
-        this.gameStore = useGameStore();
+        // 获取游戏状态注册表实例
+        this.gameRegistry = gameRegistry;
     }
 
     /**
@@ -37,7 +37,7 @@ export class InfoManager {
         this.scoreText = this.scene.add.text(
             16,
             16,
-            this.gameStore.formattedScore,
+            this.gameRegistry.getFormattedScore(),
             {
                 fontSize: "32px",
                 fill: "#fff",
@@ -49,7 +49,7 @@ export class InfoManager {
         this.levelText = this.scene.add.text(
             16,
             56,
-            `等级: ${this.gameStore.level}`,
+            `等级: ${this.gameRegistry.get('level')}`,
             {
                 fontSize: "24px",
                 fill: "#ffff00",
@@ -58,7 +58,7 @@ export class InfoManager {
         );
 
         // 设置游戏状态为正在游戏
-        this.gameStore.setGameState("playing");
+        this.gameRegistry.setGameState("playing");
 
         // 初始更新显示
         this.updateDisplay();
@@ -69,10 +69,9 @@ export class InfoManager {
      * @param {Number} points 增加的分数
      */
     addScore(points = 10) {
-        // 通过Pinia store更新分数
-        this.gameStore.addScore(points);
-
-        // 更新UI显示
+        // 通过注册表更新分数
+        this.gameRegistry.addScore(points);
+        // 直接更新UI显示
         this.updateDisplay();
     }
 
@@ -81,25 +80,18 @@ export class InfoManager {
      */
     updateDisplay() {
         // 更新分数显示
-        this.scoreText?.setText(this.gameStore.formattedScore, {
-            fontSize: "32px",
-            fill: "#fff",
-            fontFamily: "Arial",
-        });
+        this.scoreText?.setText(this.gameRegistry.getFormattedScore());
 
         // 更新等级显示
-        this.levelText?.setText(`等级: ${this.gameStore.level}`, {
-            fontSize: "24px",
-            fill: "#ffff00",
-            fontFamily: "Arial",
-        });
+        this.levelText?.setText(`等级: ${this.gameRegistry.get('level')}`);
     }
 
     /**
      * @description: 重置分数
      */
     resetScore() {
-        this.gameStore.resetScore();
+        this.gameRegistry.resetScore();
+        // 直接更新UI显示
         this.updateDisplay();
     }
 
@@ -108,7 +100,7 @@ export class InfoManager {
      * @return {Number} 当前分数
      */
     getCurrentScore() {
-        return this.gameStore.score;
+        return this.gameRegistry.get('score');
     }
 
     /**
@@ -116,17 +108,18 @@ export class InfoManager {
      * @return {Number} 当前等级
      */
     getCurrentLevel() {
-        return this.gameStore.level;
+        return this.gameRegistry.get('level');
     }
 
     /**
      * @description: 销毁信息管理器
      */
     destroy() {
+        // 销毁UI元素
         this.scoreText?.destroy();
         this.levelText?.destroy();
         this.scoreText = null;
         this.levelText = null;
-        this.gameStore = null;
+        this.gameRegistry = null;
     }
 }
