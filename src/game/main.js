@@ -20,6 +20,26 @@ const config = {
         },
     },
     scene: [AudioScene, Preloader, MainMenu, Game, GameOver],
+    callbacks: {
+        preBoot(game) {
+            // Config (including defaults) has been created.
+            console.log("game config", game.config);
+            // 获取当前操作系统信息
+            const osList = Object.entries(game.device.os)
+                .filter(([, value]) => value === true)
+                .map(([key]) => key)
+                .join(", ");
+            console.log(
+                "%c current os: %c" + osList,
+                "color: #fff; background: #007acc; padding:2px 6px; border-radius:4px 0 0 4px; font-weight:bold;",
+                "color: #fff; background: #28a745; padding:2px 6px; border-radius:0 4px 4px 0;"
+            );
+        },
+        postBoot(game) {
+            // Game canvas has been created.
+            console.log("game canvas", game.canvas);
+        },
+    },
 };
 
 const StartGame = (parent) => {
