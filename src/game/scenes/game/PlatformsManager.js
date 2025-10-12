@@ -19,19 +19,26 @@ export class PlatformsManager {
 
     /**
      * @description: 创建平台组
+     * @param {Array} platformsData 平台数据数组 [{x, y, scale, texture}]
      * @return {Phaser.Physics.Arcade.StaticGroup} 平台静态组
      */
-    create() {
+    create(platformsData = []) {
         // 创建平台静态组
         this.platforms = this.scene.physics.add.staticGroup();
         
-        // 创建地面平台 - 需要缩放并刷新物理体
-        this.platforms.create(400, 568, "ground").setScale(2).refreshBody();
-        
-        // 创建悬浮平台
-        this.platforms.create(600, 400, "ground");
-        this.platforms.create(50, 250, "ground");
-        this.platforms.create(700, 220, "ground");
+        // 根据地图数据创建平台
+        platformsData.forEach(platformData => {
+            const platform = this.platforms.create(
+                platformData.x, 
+                platformData.y, 
+                platformData.texture || "ground"
+            );
+            
+            // 如果需要缩放，则应用缩放并刷新物理体
+            if (platformData.scale && platformData.scale !== 1) {
+                platform.setScale(platformData.scale).refreshBody();
+            }
+        });
 
         return this.platforms;
     }

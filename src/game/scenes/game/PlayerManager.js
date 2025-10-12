@@ -47,6 +47,7 @@ export class PlayerManager {
 
         // 设置玩家物理属性
         this.player.setBounce(this.bounce);
+        // 设置玩家碰撞世界边界（在大地图中仍然需要，防止玩家掉出地图）
         this.player.setCollideWorldBounds(true);
         this.player.body.setGravityY(this.gravity);
 

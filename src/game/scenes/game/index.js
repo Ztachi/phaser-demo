@@ -2,7 +2,7 @@
  * @Author: ztachi(legendryztachi@gmail.com)
  * @Date: 2025-08-22 11:48:16
  * @LastEditors: ztachi(legendryztachi@gmail.com)
- * @LastEditTime: 2025-08-28 11:33:08
+ * @LastEditTime: 2025-10-11 04:59:33
  * @FilePath: /my-phaser-game/src/game/scenes/game/index.js
  * @Description: 游戏主场景 - 使用模块化架构管理游戏组件
  */
@@ -16,13 +16,13 @@ import { InfoManager } from "./infoManager";
 import { BombsManager } from "./bombsManager";
 import { InputController } from "./InputController";
 import { CameraManager } from "./cameraManager";
+import { MapGenerator } from "./MapGenerator";
 
 export class Game extends Scene {
     // 管理器实例
     platformsManager;
     // 玩家管理器
     playerManager;
-
     // 星星管理器
     starManager;
     // 信息管理器
@@ -31,6 +31,13 @@ export class Game extends Scene {
     bombsManager;
     // 输入控制器
     inputController;
+    // 相机管理器
+    cameraManager;
+    // 地图生成器
+    mapGenerator;
+    // 地图数据
+    mapData;
+    
     constructor() {
         super("Game");
     }
@@ -39,8 +46,21 @@ export class Game extends Scene {
      * @description: 场景创建方法
      */
     create() {
-        // 添加背景
-        this.add.image(400, 300, "sky");
+        // 生成地图数据
+        this.mapGenerator = new MapGenerator();
+        this.mapData = this.mapGenerator.generate();
+
+        // 设置物理世界边界
+        this.physics.world.setBounds(
+            0, 
+            0, 
+            this.mapData.worldBounds.width, 
+            this.mapData.worldBounds.height
+        );
+
+        // 添加背景 - 固定在相机视口，不随世界滚动
+        const background = this.add.image(400, 300, "sky");
+        background.setScrollFactor(0);
 
         // 初始化管理器
         this._initializeManagers();
@@ -60,21 +80,21 @@ export class Game extends Scene {
      * @private
      */
     _initializeManagers() {
-        // 创建平台管理器并初始化平台
+        // 创建平台管理器并传入地图数据
         this.platformsManager = new PlatformsManager(this);
-        this.platformsManager.create();
+        this.platformsManager.create(this.mapData.platforms);
 
-        // 创建玩家管理器并初始化玩家
+        // 创建玩家管理器并初始化玩家（起始位置在地图左下区域）
         this.playerManager = new PlayerManager(this);
-        this.playerManager.create(100, 450);
+        this.playerManager.create(100, this.mapData.worldBounds.height - 200);
 
-        // 创建星星管理器并初始化星星
+        // 创建星星管理器并传入星星位置数据和平台数据
         this.starManager = new StarManager(this);
-        this.starManager.create();
+        this.starManager.create(this.mapData.stars, this.mapData.platforms);
 
-        // 创建信息管理器
+        // 创建信息管理器并传入总星星数量
         this.infoManager = new InfoManager(this);
-        this.infoManager.create();
+        this.infoManager.create(this.mapData.stars.length);
 
         // 创建炸弹管理器
         this.bombsManager = new BombsManager(this);
@@ -84,9 +104,9 @@ export class Game extends Scene {
         this.inputController = new InputController(this, this.playerManager);
         this.inputController.create();
 
-        // 创建相机管理器
-        // this.cameraManager = new CameraManager(this);
-        // this.cameraManager.create(this.playerManager);
+        // 创建相机管理器并传入世界边界
+        this.cameraManager = new CameraManager(this);
+        this.cameraManager.create(this.playerManager, this.mapData.worldBounds);
     }
 
     /**
@@ -100,10 +120,13 @@ export class Game extends Scene {
             this.platformsManager.getPlatforms()
         );
 
-        // 设置星星与平台的碰撞检测
+        // 设置星星与平台的碰撞检测（使用自定义碰撞处理实现穿透逻辑）
         this.physics.add.collider(
             this.starManager.getStars(),
-            this.platformsManager.getPlatforms()
+            this.platformsManager.getPlatforms(),
+            null,
+            (star, platform) => this.starManager.starPlatformCollision(star, platform),
+            this
         );
         // 设置星星与玩家的碰撞检测
         this.physics.add.overlap(
@@ -166,18 +189,31 @@ export class Game extends Scene {
         this.infoManager.addScore(10);
         // 播放获取星星的音频
         EventBus.emit(AUDIO_EVENTS.GET_STAR);
-        // 如果星星组没有星星，则创建炸弹
-        if (stars.countActive(true) === 0) {
-            // 启用星星
+        
+        // 更新剩余星星数量显示
+        const remainingCount = stars.countActive(true);
+        this.infoManager.updateRemainingStars(remainingCount);
+        
+        // 如果星星组没有星星，则创建炸弹并重置星星
+        if (remainingCount === 0) {
+            // 启用星星（重置星星，开始新一轮）
             stars.children.iterate((child) => {
+                // 重置星星的落地标记，允许重新下落和判断
+                child.setData('hasLanded', false);
                 // 启用星星
                 child.enableBody(true, child.x, 0, true, true);
             });
-            // 随机生成炸弹的x坐标
-            const x =
-                player.x < 400
-                    ? Phaser.Math.Between(400, 800)
-                    : Phaser.Math.Between(0, 400);
+            
+            // 更新剩余星星数量为总数
+            this.infoManager.updateRemainingStars(this.mapData.stars.length);
+            
+            // 根据新的世界边界随机生成炸弹的x坐标
+            const worldWidth = this.mapData.worldBounds.width;
+            const halfWidth = worldWidth / 2;
+            const x = player.x < halfWidth
+                ? Phaser.Math.Between(halfWidth, worldWidth - 100)
+                : Phaser.Math.Between(100, halfWidth);
+            
             // 创建炸弹
             const bomb = this.bombsManager.getBombs().create(x, 16, "bomb");
             // 设置炸弹的反弹
@@ -195,6 +231,21 @@ export class Game extends Scene {
     update() {
         // 更新输入控制器，处理玩家移动和跳跃
         this.inputController?.update();
+        
+        // 更新星星方向箭头
+        if (this.playerManager && this.starManager && this.infoManager) {
+            const player = this.playerManager.getPlayer();
+            const stars = this.starManager.getStars();
+            
+            // 获取所有活跃的星星
+            const activeStars = stars?.getChildren().filter(star => star.active) || [];
+            
+            // 更新箭头指向
+            this.infoManager.updateStarArrow(
+                { x: player.x, y: player.y },
+                activeStars
+            );
+        }
     }
 
     /**
