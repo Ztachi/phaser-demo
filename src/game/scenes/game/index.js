@@ -196,32 +196,51 @@ export class Game extends Scene {
         
         // 如果星星组没有星星，则创建炸弹并重置星星
         if (remainingCount === 0) {
-            // 启用星星（重置星星，开始新一轮）
-            stars.children.iterate((child) => {
-                // 重置星星的落地标记，允许重新下落和判断
-                child.setData('hasLanded', false);
-                // 启用星星
-                child.enableBody(true, child.x, 0, true, true);
-            });
+            // 重新生成星星数据（随机数量和X坐标）
+            const newStarsData = this.mapGenerator.regenerateStars();
+            this.mapData.stars = newStarsData;
             
-            // 更新剩余星星数量为总数
-            this.infoManager.updateRemainingStars(this.mapData.stars.length);
+            // 获取当前星星数组
+            const starsArray = stars.children.entries;
+            
+            // 如果新一轮星星数量多于当前星星数量，需要创建新星星
+            while (starsArray.length < newStarsData.length) {
+                const newStar = stars.create(0, 0, "star");
+                newStar.setBounceY(Phaser.Math.FloatBetween(0.2, 0.4));
+                starsArray.push(newStar);
+            }
+            
+            // 如果新一轮星星数量少于当前星星数量，禁用多余的星星
+            if (starsArray.length > newStarsData.length) {
+                for (let i = newStarsData.length; i < starsArray.length; i++) {
+                    starsArray[i].disableBody(true, true);
+                }
+            }
+            
+            // 启用星星（使用新的X坐标）
+            for (let i = 0; i < newStarsData.length; i++) {
+                const star = starsArray[i];
+                // 重置星星的落地标记，允许重新下落和判断
+                star.setData('hasLanded', false);
+                // 启用星星，使用新的随机X坐标
+                star.enableBody(true, newStarsData[i].x, 0, true, true);
+            }
+            
+            // 更新剩余星星数量为新的总数
+            this.infoManager.updateRemainingStars(newStarsData.length);
             
             // 根据新的世界边界随机生成炸弹的x坐标
             const worldWidth = this.mapData.worldBounds.width;
-            const halfWidth = worldWidth / 2;
-            const x = player.x < halfWidth
-                ? Phaser.Math.Between(halfWidth, worldWidth - 100)
-                : Phaser.Math.Between(100, halfWidth);
+            const x = Phaser.Math.Between(100, worldWidth - 100);
             
             // 创建炸弹
             const bomb = this.bombsManager.getBombs().create(x, 16, "bomb");
-            // 设置炸弹的反弹
+            // 设置炸弹的反弹（完全弹性，保持一直跳跃）
             bomb.setBounce(1);
             // 设置炸弹的碰撞世界边界
             bomb.setCollideWorldBounds(true);
-            // 设置炸弹的速度
-            bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+            // 设置炸弹的速度（增大X方向速度，形成抛物线而非原地跳）
+            bomb.setVelocity(Phaser.Math.Between(-300, 300), 20);
         }
     }
 

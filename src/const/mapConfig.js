@@ -2,7 +2,7 @@
  * @Author: ztachi(legendryztachi@gmail.com)
  * @Date: 2025-10-12 11:30:00
  * @LastEditors: ztachi(legendryztachi@gmail.com)
- * @LastEditTime: 2025-10-12 11:30:00
+ * @LastEditTime: 2025-10-22 11:40:53
  * @FilePath: /my-phaser-game/src/const/mapConfig.js
  * @Description: 地图生成配置常量
  */

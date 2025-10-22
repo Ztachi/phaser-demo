@@ -2,7 +2,7 @@
  * @Author: ztachi(legendryztachi@gmail.com)
  * @Date: 2025-10-12 00:00:00
  * @LastEditors: ztachi(legendryztachi@gmail.com)
- * @LastEditTime: 2025-10-12 11:30:00
+ * @LastEditTime: 2025-10-22 11:35:37
  * @FilePath: /my-phaser-game/src/game/scenes/game/MapGenerator.js
  * @Description: 地图生成器 - 负责程序化生成游戏地图、平台和星星位置
  */
@@ -278,6 +278,21 @@ export class MapGenerator {
             
             return false;
         });
+    }
+
+    /**
+     * @description: 重新生成星星（用于新一轮游戏）
+     * @return {Array} 新的星星位置数组
+     */
+    regenerateStars() {
+        // 清空当前星星数组
+        this.stars = [];
+        
+        // 重新生成星星
+        this._generateStars();
+        
+        // 返回新的星星数组
+        return this.stars;
     }
 
     /**
